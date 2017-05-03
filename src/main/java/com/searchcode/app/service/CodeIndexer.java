@@ -170,6 +170,7 @@ public class CodeIndexer {
 
             while (codeIndexDocument != null) {
                 Singleton.getLogger().info("Indexing file " + codeIndexDocument.getRepoLocationRepoNameLocationFilename());
+                Singleton.getLogger().info("issue85 Indexing file " + codeIndexDocument.getRepoLocationRepoNameLocationFilename());
                 Singleton.decrementCodeIndexLinesCount(codeIndexDocument.getCodeLines());
 
                 Document doc = new Document();
@@ -184,29 +185,50 @@ public class CodeIndexer {
                 facetsConfig.setIndexFieldName(Values.REPONAME, Values.REPONAME);
                 facetsConfig.setIndexFieldName(Values.CODEOWNER, Values.CODEOWNER);
 
-                if (Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getLanguageName()) == false) {
+                if (!Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getLanguageName())) {
                     doc.add(new SortedSetDocValuesFacetField(Values.LANGUAGENAME, codeIndexDocument.getLanguageName()));
                 }
-                if (Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getRepoName()) == false) {
+                if (!Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getRepoName())) {
                     doc.add(new SortedSetDocValuesFacetField(Values.REPONAME, codeIndexDocument.getRepoName()));
                 }
-                if (Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getCodeOwner()) == false) {
+                if (!Singleton.getHelpers().isNullEmptyOrWhitespace(codeIndexDocument.getCodeOwner())) {
                     doc.add(new SortedSetDocValuesFacetField(Values.CODEOWNER, codeIndexDocument.getCodeOwner()));
                 }
 
                 // TODO Is this even required anymore?
+                Singleton.getLogger().info("issue85 adding to spelling corrector");
                 searchcodeLib.addToSpellingCorrector(codeIndexDocument.getContents()); // Store in spelling corrector
+                Singleton.getLogger().info("issue85 end adding to spelling corrector");
 
                 StringBuilder indexContents = new StringBuilder();
 
+                Singleton.getLogger().info("issue85 getFileName codeCleanPipeline");
                 indexContents.append(searchcodeLib.codeCleanPipeline(codeIndexDocument.getFileName())).append(" ");
+                Singleton.getLogger().info("issue85 end getFileName codeCleanPipeline");
+
+                Singleton.getLogger().info("issue85 getFileName splitKeywords pipeline");
                 indexContents.append(searchcodeLib.splitKeywords(codeIndexDocument.getFileName())).append(" ");
+                Singleton.getLogger().info("issue85 end getFileName splitKeywords pipeline");
+
                 indexContents.append(codeIndexDocument.getFileLocationFilename()).append(" ");
                 indexContents.append(codeIndexDocument.getFileLocation());
+
+                Singleton.getLogger().info("issue85 getContents splitKeywords");
                 indexContents.append(searchcodeLib.splitKeywords(codeIndexDocument.getContents()));
+                Singleton.getLogger().info("issue85 end getContents splitKeywords");
+
+                Singleton.getLogger().info("issue85 getContents codeCleanPipeline");
                 indexContents.append(searchcodeLib.codeCleanPipeline(codeIndexDocument.getContents()));
+                Singleton.getLogger().info("issue85 end getContents codeCleanPipeline");
+
+                Singleton.getLogger().info("issue85 getContents findInterestingKeywords");
                 indexContents.append(searchcodeLib.findInterestingKeywords(codeIndexDocument.getContents()));
+                Singleton.getLogger().info("issue85 end getContents findInterestingKeywords");
+
+                Singleton.getLogger().info("issue85 getContents findInterestingCharacters");
                 indexContents.append(searchcodeLib.findInterestingCharacters(codeIndexDocument.getContents()));
+                Singleton.getLogger().info("issue85 end getContents findInterestingCharacters");
+
                 String toIndex = indexContents.toString().toLowerCase();
 
                 doc.add(new TextField(Values.REPONAME,             codeIndexDocument.getRepoName().replace(" ", "_"), Field.Store.YES));
@@ -224,7 +246,9 @@ public class CodeIndexer {
                 // Extra metadata in this case when it was last indexed
                 doc.add(new LongField(Values.MODIFIED, new Date().getTime(), Field.Store.YES));
 
+                Singleton.getLogger().info("issue85 updateDocument");
                 writer.updateDocument(new Term(Values.PATH, codeIndexDocument.getRepoLocationRepoNameLocationFilename()), facetsConfig.build(taxonomyWriter, doc));
+                Singleton.getLogger().info("issue85 end updateDocument");
 
                 count++;
                 if (count >= INDEX_QUEUE_BATCH_SIZE) {
