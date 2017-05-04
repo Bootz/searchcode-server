@@ -126,7 +126,7 @@ def read_clean_file(filename):
 if __name__ == '__main__':
     licenses = load_database()
 
-    project_directory = '/Users/boyter/Documents/Projects/gcc/'
+    project_directory = '/Users/boyter/Documents/Projects/ripgrep/'
     license_queue = deque()
 
     for root, dirs, files in os.walk(project_directory):
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         if license_queue[-1][0]['root'] not in root:
             license_queue.pop()
 
-        for file in [root + '/' + x for x in files if x.endswith('.js') or x.endswith('.java') or x.endswith('.py') or x.endswith('.c') or x.endswith('.css')]:
+        for file in [root + '/' + x for x in files if x.endswith('.js') or x.endswith('.java') or x.endswith('.py') or x.endswith('.c') or x.endswith('.rs')]:
             current_licenses = list(license_queue)
 
             t = []

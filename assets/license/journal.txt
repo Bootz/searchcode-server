@@ -762,6 +762,8 @@ The last part was to add back the file check so that we can identify license hea
 
 Well that about covers that. Everything seems to work as I would exepct and it would be reasonably easy at this point to take the code and produce a full blown SPDX parser. I will leave that as an excercise for the reader (unless it turns out I need one at a later date). The next step for me is to integrate this into searchcode server.
 
+I started by porting the vector space class.
+
 
 
 
