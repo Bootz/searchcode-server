@@ -145,6 +145,8 @@ Enter the default password Adm1n234 (change this via the properties file)
 to add git repositories. If you need help check the documentation page (link at the bottom
 of every page).
 
+To setup using Ubuntu as an Update or SystemD job see https://searchcodeserver.com/knowledge-base/upstart-and-systemd-startup-scripts-for-ubuntu.html
+
 Upgrades
 --------
 
@@ -195,6 +197,9 @@ XX XXXXX XXXX - 1.3.10
  - Set follow symlinks to be configurable through properties file https://github.com/boyter/searchcode-server/issues/99
  - Clicking Remove will also clear the text box filters https://github.com/boyter/searchcode-server/issues/98
  - Improved stop/reset jobs logic, deleted jobs persist on searchcode restart https://github.com/boyter/searchcode-server/issues/41
+ - Add logic to calculate project stats by lines not files and display next to existing https://github.com/boyter/searchcode-server/issues/103
+ - Deep guess logic added to guess a files type based on keyword heuristic's https://github.com/boyter/searchcode-server/issues/105
+ - Additional languages added to classifier database, F#, Mathematica, Parrot, Puppet, Rakefile, PKGBUILD, Cargo, Lock, License
 
 13 April 2017 - 1.3.9
  - Repository table can now be created from empty database if required https://github.com/boyter/searchcode-server/issues/83
