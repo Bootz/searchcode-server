@@ -18,10 +18,7 @@ import com.searchcode.app.dto.CodeIndexDocument;
 import com.searchcode.app.dto.RepositoryChanged;
 import com.searchcode.app.dto.RunningIndexJob;
 import com.searchcode.app.model.RepoResult;
-import com.searchcode.app.service.CodeIndexer;
-import com.searchcode.app.service.CodeSearcher;
-import com.searchcode.app.service.SharedService;
-import com.searchcode.app.service.Singleton;
+import com.searchcode.app.service.*;
 import com.searchcode.app.util.Properties;
 import com.searchcode.app.util.SearchcodeLib;
 import com.searchcode.app.util.UniqueRepoQueue;
@@ -42,6 +39,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class IndexBaseRepoJob implements Job {
 
@@ -51,7 +49,7 @@ public abstract class IndexBaseRepoJob implements Job {
     public boolean LOGINDEXED = Boolean.parseBoolean(Properties.getProperties().getProperty(Values.LOG_INDEXED, "false"));
     public boolean FOLLOWLINKS = Boolean.parseBoolean(Properties.getProperties().getProperty(Values.FOLLOW_LINKS, Values.DEFAULT_FOLLOW_LINKS));
     public boolean haveRepoResult = false;
-    public CodeIndexer codeIndexer = Singleton.getCodeIndexer();
+    public IndexService indexService = Singleton.getIndexService();
     public SharedService sharedService;
 
     /**
@@ -115,7 +113,7 @@ public abstract class IndexBaseRepoJob implements Job {
             return;
         }
 
-        if (this.codeIndexer.shouldPauseAdding()) {
+        if (this.indexService.shouldRepoJobPause()) {
             Singleton.getLogger().info("Pausing parser.");
             return;
         }
@@ -199,7 +197,7 @@ public abstract class IndexBaseRepoJob implements Job {
                 if (!filePath.getAbsolutePath().equals("/")) { // Lets really be sure....
                     FileUtils.deleteDirectory(filePath);
                 }
-                Singleton.getCodeIndexer().deleteByReponame(repoName);
+                Singleton.getIndexService().deleteByRepo(Singleton.getRepo().getRepoByName(repoName));
             } catch (IOException ex) {
                 Singleton.getLogger().warning("ERROR - caught a " + ex.getClass() + " in " + this.getClass() + "\n with message: " + ex.getMessage());
             }
@@ -292,7 +290,9 @@ public abstract class IndexBaseRepoJob implements Job {
 
             if (this.LOWMEMORY) {
                 try {
-                    Singleton.getCodeIndexer().indexDocument(new CodeIndexDocument(repoLocationRepoNameLocationFilename, repoName, fileName, fileLocation, fileLocationFilename, md5Hash, languageName, codeLinesReturn.getCodeLines().size(), StringUtils.join(codeLinesReturn.getCodeLines(), " "), repoRemoteLocation, codeOwner));
+                    Queue<CodeIndexDocument> queue = new ConcurrentLinkedQueue<>();
+                    queue.add(new CodeIndexDocument(repoLocationRepoNameLocationFilename, repoName, fileName, fileLocation, fileLocationFilename, md5Hash, languageName, codeLinesReturn.getCodeLines().size(), StringUtils.join(codeLinesReturn.getCodeLines(), " "), repoRemoteLocation, codeOwner));
+                    this.indexService.indexDocument(queue);
                 } catch (IOException ex) {
                     Singleton.getLogger().warning("ERROR - caught a " + ex.getClass() + " in " + this.getClass() +  "\n with message: " + ex.getMessage());
                 }
@@ -315,7 +315,7 @@ public abstract class IndexBaseRepoJob implements Job {
             deletedFile = deletedFile.replace("//", "/");
             Singleton.getLogger().info("Missing from disk, removing from index " + deletedFile);
             try {
-                Singleton.getCodeIndexer().deleteByCodeId(DigestUtils.sha1Hex(deletedFile));
+                this.indexService.deleteByCodeId(DigestUtils.sha1Hex(deletedFile));
             } catch (IOException ex) {
                 Singleton.getLogger().warning("ERROR - caught a " + ex.getClass() + " in " + this.getClass() +  " indexDocsByDelta deleteByFileLocationFilename for " + repoName + " " + deletedFile + "\n with message: " + ex.getMessage());
             }
@@ -373,7 +373,7 @@ public abstract class IndexBaseRepoJob implements Job {
                 if (!fileLocations.containsKey(file)) {
                     Singleton.getLogger().info("Missing from disk, removing from index " + file);
                     try {
-                        Singleton.getCodeIndexer().deleteByCodeId(DigestUtils.sha1Hex(file));
+                        this.indexService.deleteByCodeId(DigestUtils.sha1Hex(file));
                     } catch (IOException ex) {
                         Singleton.getLogger().warning("ERROR - caught a " + ex.getClass() + " in " + this.getClass() + " indexDocsByPath deleteByFileLocationFilename for " + repoName + " " + file + "\n with message: " + ex.getMessage());
                     }
@@ -428,7 +428,7 @@ public abstract class IndexBaseRepoJob implements Job {
             return true;
         }
 
-        while (Singleton.getCodeIndexer().shouldPauseAdding()) {
+        while (this.indexService.shouldRepoJobPause()) {
             if (!this.sharedService.getBackgroundJobsEnabled()) {
                 return true;
             }

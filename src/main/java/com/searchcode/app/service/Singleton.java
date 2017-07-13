@@ -61,9 +61,9 @@ public final class Singleton {
     private static JobService jobService = null;
     private static SharedService sharedService = null;
     private static IDatabaseConfig databaseConfig = null;
-    private static CodeIndexer codeIndexer = null;
     private static Helpers helpers = null;
     private static ValidatorService validatorService = null;
+    private static IndexService indexService = null;
 
     private static UniqueRepoQueue uniqueGitRepoQueue = null; // Used to queue the next repository to be indexed
     private static UniqueRepoQueue uniqueFileRepoQueue = null; // Used to queue the next repository to be indexed
@@ -89,6 +89,14 @@ public final class Singleton {
         }
 
         return uniqueSvnRepoQueue;
+    }
+
+    public static synchronized IndexService getIndexService() {
+        if (indexService == null) {
+            indexService = new IndexService();
+        }
+
+        return indexService;
     }
 
     /**
@@ -305,14 +313,6 @@ public final class Singleton {
         }
 
         return databaseConfig;
-    }
-
-    public static synchronized CodeIndexer getCodeIndexer() {
-        if (codeIndexer == null) {
-            codeIndexer = new CodeIndexer();
-        }
-
-        return codeIndexer;
     }
 
     public static synchronized Helpers getHelpers() {

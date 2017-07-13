@@ -5,6 +5,7 @@ import com.searchcode.app.jobs.repository.IndexBaseRepoJob;
 import com.searchcode.app.jobs.repository.IndexGitRepoJob;
 import com.searchcode.app.model.RepoResult;
 import com.searchcode.app.service.CodeIndexer;
+import com.searchcode.app.service.IndexService;
 import com.searchcode.app.service.SharedService;
 import com.searchcode.app.service.Singleton;
 import com.searchcode.app.util.UniqueRepoQueue;
@@ -29,18 +30,21 @@ public class IndexBaseRepoJobTest extends TestCase {
     private JobDetail mockDetail;
     private JobDataMap mockJobDataMap;
     private CodeIndexer mockCodeIndexer;
+    private IndexService mockIndexService;
 
     public void setUp() {
         this.mockContext = Mockito.mock(JobExecutionContext.class);
         this.mockDetail = Mockito.mock(JobDetail.class);
         this.mockJobDataMap = Mockito.mock(JobDataMap.class);
         this.mockCodeIndexer = Mockito.mock(CodeIndexer.class);
+        this.mockIndexService = Mockito.mock(IndexService.class);
 
         when(mockJobDataMap.get("REPOLOCATIONS")).thenReturn("");
         when(mockJobDataMap.get("LOWMEMORY")).thenReturn("true");
         when(mockDetail.getJobDataMap()).thenReturn(mockJobDataMap);
         when(mockContext.getJobDetail()).thenReturn(mockDetail);
         when(mockCodeIndexer.shouldPauseAdding()).thenReturn(false);
+        when(mockIndexService.shouldRepoJobPause()).thenReturn(false);
     }
 
 
@@ -50,7 +54,7 @@ public class IndexBaseRepoJobTest extends TestCase {
         spy.haveRepoResult = false;
 
         when(spy.getNextQueuedRepo()).thenReturn(new UniqueRepoQueue());
-        spy.codeIndexer = mockCodeIndexer;
+        spy.indexService = this.mockIndexService;
 
         spy.execute(this.mockContext);
         assertThat(spy.haveRepoResult).isFalse();
@@ -73,8 +77,8 @@ public class IndexBaseRepoJobTest extends TestCase {
         when(spy.getNewRepository(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean()))
                 .thenReturn(new RepositoryChanged(false, null, null));
 
-        when(mockCodeIndexer.shouldPauseAdding()).thenReturn(false);
-        spy.codeIndexer = mockCodeIndexer;
+        when(mockIndexService.shouldRepoJobPause()).thenReturn(false);
+        spy.indexService = this.mockIndexService;
 
         spy.execute(this.mockContext);
 

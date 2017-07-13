@@ -11,6 +11,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 
 public class SearchcodeFileVisitor<Path> extends SimpleFileVisitor<Path> {
@@ -92,7 +93,9 @@ public class SearchcodeFileVisitor<Path> extends SimpleFileVisitor<Path> {
             String codeOwner = this.indexBaseRepoJob.getCodeOwner(codeLinesReturn.getCodeLines(), newString, this.repoName, fileRepoLocations, Singleton.getSearchCodeLib());
 
             if (this.indexBaseRepoJob.LOWMEMORY) {
-                Singleton.getCodeIndexer().indexDocument(new CodeIndexDocument(fileToString, this.repoName, fileName, fileLocation, fileLocationFilename, md5Hash, languageName, codeLinesReturn.getCodeLines().size(), StringUtils.join(codeLinesReturn.getCodeLines(), " "), repoRemoteLocation, codeOwner));
+                Queue<CodeIndexDocument> queue = new ConcurrentLinkedDeque<>();
+                queue.add(new CodeIndexDocument(fileToString, this.repoName, fileName, fileLocation, fileLocationFilename, md5Hash, languageName, codeLinesReturn.getCodeLines().size(), StringUtils.join(codeLinesReturn.getCodeLines(), " "), repoRemoteLocation, codeOwner));
+                Singleton.getIndexService().indexDocument(queue);
 
             } else {
                 Singleton.getSharedService().incrementCodeIndexLinesCount(codeLinesReturn.getCodeLines().size());

@@ -7,6 +7,9 @@ import junit.framework.TestCase;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -30,7 +33,9 @@ public class CodeSearcherTest extends TestCase {
     // Integration Test
     public void testGetRepoDocuments() throws IOException {
         CodeIndexDocument codeIndexDocument = new CodeIndexDocument("/", "testGetRepoDocuments", "/", "/", "/", "md5hash", "Java", 10, "", "/", "/");
-        Singleton.getCodeIndexer().indexDocument(codeIndexDocument);
+        Queue<CodeIndexDocument> queue = new ConcurrentLinkedQueue<>();
+        queue.add(codeIndexDocument);
+        Singleton.getIndexService().indexDocument(queue);
         CodeSearcher cs = new CodeSearcher();
 
         List<String> testGetRepoDocuments = cs.getRepoDocuments("testGetRepoDocuments", 0);
@@ -42,7 +47,9 @@ public class CodeSearcherTest extends TestCase {
 
     public void testGetProjectStats() throws IOException {
         CodeIndexDocument codeIndexDocument = new CodeIndexDocument("/", "testGetRepoDocuments", "/", "/", "/", "md5hash", "Java", 10, "", "/", "/");
-        Singleton.getCodeIndexer().indexDocument(codeIndexDocument);
+        Queue<CodeIndexDocument> queue = new ConcurrentLinkedQueue<>();
+        queue.add(codeIndexDocument);
+        Singleton.getIndexService().indexDocument(queue);
         CodeSearcher cs = new CodeSearcher();
 
         ProjectStats projectStats = cs.getProjectStats("testGetRepoDocuments");

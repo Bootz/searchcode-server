@@ -54,7 +54,7 @@ public class DeleteRepositoryJob implements Job {
             }
 
             Singleton.getLogger().info("Deleting repository. " + rr.getName());
-            Singleton.getCodeIndexer().deleteByReponame(rr.getName());
+            Singleton.getIndexService().deleteByRepo(rr);
 
             // remove the directory
             String repoLocations = Properties.getProperties().getProperty(Values.REPOSITORYLOCATION, Values.DEFAULTREPOSITORYLOCATION);

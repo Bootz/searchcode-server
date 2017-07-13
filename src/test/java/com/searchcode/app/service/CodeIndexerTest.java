@@ -3,6 +3,7 @@ package com.searchcode.app.service;
 import com.searchcode.app.config.Values;
 import com.searchcode.app.dao.Data;
 import com.searchcode.app.dto.CodeIndexDocument;
+import com.searchcode.app.model.RepoResult;
 import junit.framework.TestCase;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
@@ -11,15 +12,23 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.when;
 
 public class CodeIndexerTest extends TestCase {
     public CodeIndexDocument codeIndexDocument = new CodeIndexDocument("repoLocationRepoNameLocationFilename", "repoName", "fileName", "fileLocation", "fileLocationFilename", "md5hash", "languageName", 100, "contents", "repoRemoteLocation", "codeOwner");
+    public Queue<CodeIndexDocument> queue = new ConcurrentLinkedDeque<>();
+
+    private void resetQueue() {
+        this.queue.clear();
+        this.queue.add(this.codeIndexDocument);
+    }
 
     public void testIndexDocument() throws IOException {
-        Singleton.getCodeIndexer().indexDocument(codeIndexDocument);
+        this.resetQueue();
+        Singleton.getIndexService().indexDocument(this.queue);
     }
 
     public void testShouldPauseAddingExpectTrue() {
@@ -47,17 +56,17 @@ public class CodeIndexerTest extends TestCase {
     public void testIndexDocuments() throws IOException {
         Queue<CodeIndexDocument> queue = new ConcurrentArrayQueue<>();
         queue.add(codeIndexDocument);
-        Singleton.getCodeIndexer().indexDocuments(queue);
+        Singleton.getIndexService().indexDocument(queue);
     }
 
     // TODO actually assert something in here
     public void testDeleteByRepoName() throws IOException {
-        Singleton.getCodeIndexer().deleteByReponame("repoName");
+        Singleton.getIndexService().deleteByRepo(new RepoResult());
     }
 
     // TODO actually assert something in here
     public void testDeleteByFilePath() throws IOException {
-        Singleton.getCodeIndexer().deleteByCodeId("./repo/test/README.md");
+        Singleton.getIndexService().deleteByCodeId("./repo/test/README.md");
     }
 
     // TODO fix the assert rather then programming by exception
@@ -68,7 +77,7 @@ public class CodeIndexerTest extends TestCase {
             Queue queue = new ConcurrentArrayQueue<CodeIndexDocument>();
             queue.add(cid);
 
-            Singleton.getCodeIndexer().indexDocuments(queue);
+            Singleton.getIndexService().indexDocument(queue);
         }
         catch(Exception ex) {
             assertTrue(false);

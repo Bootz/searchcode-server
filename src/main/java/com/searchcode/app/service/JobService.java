@@ -13,7 +13,6 @@ package com.searchcode.app.service;
 import com.searchcode.app.config.Values;
 import com.searchcode.app.dao.IRepo;
 import com.searchcode.app.jobs.*;
-import com.searchcode.app.jobs.enqueue.EnqueueFileRepositoryJob;
 import com.searchcode.app.jobs.enqueue.EnqueueRepositoryJob;
 import com.searchcode.app.jobs.repository.IndexDocumentsJob;
 import com.searchcode.app.jobs.repository.IndexFileRepoJob;
@@ -50,7 +49,6 @@ public class JobService implements IJobService {
 
     private IRepo repo = null;
     private int UPDATETIME = 600;
-    private int FILEINDEXUPDATETIME = 3600;
     private int INDEXTIME = 1; // TODO allow this to be configurable
     private int NUMBERGITPROCESSORS = Singleton.getHelpers().tryParseInt(Properties.getProperties().getProperty(Values.NUMBER_GIT_PROCESSORS, Values.DEFAULT_NUMBER_GIT_PROCESSORS), Values.DEFAULT_NUMBER_GIT_PROCESSORS);
     private int NUMBERSVNPROCESSORS = Singleton.getHelpers().tryParseInt(Properties.getProperties().getProperty(Values.NUMBER_SVN_PROCESSORS, Values.DEFAULT_NUMBER_SVN_PROCESSORS), Values.DEFAULT_NUMBER_SVN_PROCESSORS);
@@ -64,7 +62,6 @@ public class JobService implements IJobService {
     public JobService() {
         this.repo = Singleton.getRepo();
         this.UPDATETIME = Singleton.getHelpers().tryParseInt(Properties.getProperties().getProperty(Values.CHECKREPOCHANGES, Values.DEFAULTCHECKREPOCHANGES), Values.DEFAULTCHECKREPOCHANGES);
-        this.FILEINDEXUPDATETIME = Singleton.getHelpers().tryParseInt(Properties.getProperties().getProperty(Values.CHECKFILEREPOCHANGES, Values.DEFAULTCHECKFILEREPOCHANGES), Values.DEFAULTCHECKFILEREPOCHANGES);
     }
 
     /**
@@ -188,25 +185,6 @@ public class JobService implements IJobService {
 
             scheduler.scheduleJob(job, trigger);
             scheduler.start();
-
-
-            Scheduler scheduler2 = Singleton.getScheduler();
-
-            // Setup the indexer which runs forever adding documents to be indexed
-            JobDetail job2 = newJob(EnqueueFileRepositoryJob.class)
-                    .withIdentity("enqueuefilejob")
-                    .build();
-
-            SimpleTrigger trigger2 = newTrigger()
-                    .withIdentity("enqueuefilejob")
-                    .withSchedule(simpleSchedule()
-                                    .withIntervalInSeconds(this.FILEINDEXUPDATETIME)
-                                    .repeatForever()
-                    )
-                    .build();
-
-            scheduler2.scheduleJob(job2, trigger2);
-            scheduler2.start();
         } catch (SchedulerException ex) {
             Singleton.getLogger().severe(" caught a " + ex.getClass() + "\n with message: " + ex.getMessage());
         }

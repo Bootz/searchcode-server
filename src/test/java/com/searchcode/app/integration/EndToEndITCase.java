@@ -8,6 +8,7 @@ import com.searchcode.app.dto.SearchResult;
 import com.searchcode.app.jobs.repository.IndexFileRepoJob;
 import com.searchcode.app.jobs.repository.IndexGitRepoJob;
 import com.searchcode.app.jobs.repository.IndexSvnRepoJob;
+import com.searchcode.app.model.RepoResult;
 import com.searchcode.app.service.CodeIndexer;
 import com.searchcode.app.service.CodeSearcher;
 import com.searchcode.app.service.Singleton;
@@ -44,7 +45,7 @@ public class EndToEndITCase extends TestCase{
 
         // Delete a single file
         String codeId = searchResult.getCodeResultList().get(0).getCodeId();
-        Singleton.getCodeIndexer().deleteByCodeId(codeId);
+        Singleton.getIndexService().deleteByCodeId(codeId);
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(2);
 
@@ -66,7 +67,7 @@ public class EndToEndITCase extends TestCase{
         assertThat(codeResult2.getCode().get(0)).isEqualTo("EndToEndTestFile EndToEndTestFile3");
 
         // Delete everything
-        Singleton.getCodeIndexer().deleteByReponame("ENDTOENDTEST");
+        Singleton.getIndexService().deleteByRepo(new RepoResult(0, "ENDTOENDTEST", "", "", "", "", "", "", "[]"));
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(0);
     }
@@ -94,7 +95,7 @@ public class EndToEndITCase extends TestCase{
 
         // Delete a single file
         String codeId = searchResult.getCodeResultList().get(0).getCodeId();
-        Singleton.getCodeIndexer().deleteByCodeId(codeId);
+        Singleton.getIndexService().deleteByCodeId(codeId);
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(2);
 
@@ -110,7 +111,7 @@ public class EndToEndITCase extends TestCase{
         assertThat(codeResult1.getCode().get(0)).isEqualTo("EndToEndTestFile EndToEndTestFile1");
         assertThat(codeResult2.getCode().get(0)).isEqualTo("EndToEndTestFile EndToEndTestFile3");
 
-        Singleton.getCodeIndexer().deleteByReponame("ENDTOENDTEST");
+        Singleton.getIndexService().deleteByRepo(new RepoResult(0, "ENDTOENDTEST", "", "", "", "", "", "", "[]"));
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(0);
     }
@@ -134,7 +135,7 @@ public class EndToEndITCase extends TestCase{
 
         // Delete a single file
         String codeId = searchResult.getCodeResultList().get(0).getCodeId();
-        Singleton.getCodeIndexer().deleteByCodeId(codeId);
+        Singleton.getIndexService().deleteByCodeId(codeId);
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(2);
 
@@ -150,7 +151,7 @@ public class EndToEndITCase extends TestCase{
         assertThat(codeResult1.getCode().get(0)).isEqualTo("EndToEndTestFile EndToEndTestFile1");
         assertThat(codeResult2.getCode().get(0)).isEqualTo("EndToEndTestFile EndToEndTestFile3");
 
-        Singleton.getCodeIndexer().deleteByReponame("ENDTOENDTEST");
+        Singleton.getIndexService().deleteByRepo(new RepoResult(0, "ENDTOENDTEST", "", "", "", "", "", "", "[]"));
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(0);
     }
@@ -200,7 +201,7 @@ public class EndToEndITCase extends TestCase{
         searchResult = cs.search("endtoendtestfile", 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(3);
 
-        Singleton.getCodeIndexer().deleteByReponame("EndToEndGitTest");
+        Singleton.getIndexService().deleteByRepo(new RepoResult(0, "EndToEndGitTest", "", "", "", "", "", "", "[]"));
         searchResult = cs.search("endtoendtestfile".toLowerCase(), 0);
         assertThat(searchResult.getCodeResultList().size()).isEqualTo(0);
     }

@@ -39,7 +39,7 @@ public class IndexDocumentsJob implements Job {
                 Singleton.getLogger().info("Documents to index: " + codeIndexQueueSize);
                 Singleton.getLogger().info("Lines to index: " + Singleton.getSharedService().getCodeIndexLinesCount());
                 Singleton.getLogger().info("Memory Usage: " + statsService.getMemoryUsage(", "));
-                Singleton.getCodeIndexer().indexDocuments(Singleton.getCodeIndexQueue());
+                Singleton.getIndexService().indexDocument(Singleton.getCodeIndexQueue());
             }
         } catch (Exception ex) {
             // Continue at all costs

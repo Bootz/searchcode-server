@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @DisallowConcurrentExecution
 public class EnqueueRepositoryJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        if (!Singleton.getSharedService().getBackgroundJobsEnabled()) {
+        if (Singleton.getIndexService().shouldRepoAdderPause()) {
             return;
         }
 
@@ -36,6 +36,7 @@ public class EnqueueRepositoryJob implements Job {
 
             UniqueRepoQueue repoGitQueue = Singleton.getUniqueGitRepoQueue();
             UniqueRepoQueue repoSvnQueue = Singleton.getUniqueSvnRepoQueue();
+            UniqueRepoQueue repoQueue = Singleton.getUniqueFileRepoQueue();
 
             // Get all of the repositories and enqueue them
             List<RepoResult> repoResultList = Singleton.getRepo().getAllRepo();
@@ -57,12 +58,16 @@ public class EnqueueRepositoryJob implements Job {
                         Singleton.getLogger().info("Adding to SVN queue " + rr.getName() + " " + rr.getScm());
                         repoSvnQueue.add(rr);
                         break;
+                    case "file":
+                        Singleton.getLogger().info("Adding to FILE queue " + rr.getName() + " " + rr.getScm());
+                        repoQueue.add(rr);
+                        break;
                     default:
                         Singleton.getLogger().info("Unable to determine SCM type for " + rr.getName() + " " + rr.getScm());
                         break;
                 }
             }
         }
-        catch (Exception ex) {}
+        catch (Exception ignore) {}
     }
 }
